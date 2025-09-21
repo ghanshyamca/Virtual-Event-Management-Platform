@@ -15,13 +15,15 @@ const { PORT, NODE_ENV, HOST } = SERVER;
 app.use(helmet());
 app.use(cors());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: RATE_CONFIG.WINDOW_MS,
-  max: RATE_CONFIG.MAX_REQUESTS,
-  message: RATE_CONFIG.MESSAGE
-});
-app.use(limiter);
+// Rate limiting (disabled in test environment)
+if (NODE_ENV !== 'test') {
+  const limiter = rateLimit({
+    windowMs: RATE_CONFIG.WINDOW_MS,
+    max: RATE_CONFIG.MAX_REQUESTS,
+    message: RATE_CONFIG.MESSAGE
+  });
+  app.use(limiter);
+}
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

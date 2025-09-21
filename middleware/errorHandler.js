@@ -1,14 +1,17 @@
 // Global error handler middleware
 const errorHandler = (err, req, res, next) => {
-  console.error('Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString(),
-    userAgent: req.get('User-Agent'),
-    ip: req.ip
-  });
+  // Only log errors in non-test environments to reduce noise in test output
+  if (process.env.NODE_ENV !== 'test') {
+    console.error('Error occurred:', {
+      message: err.message,
+      stack: err.stack,
+      url: req.originalUrl,
+      method: req.method,
+      timestamp: new Date().toISOString(),
+      userAgent: req.get('User-Agent'),
+      ip: req.ip
+    });
+  }
 
   // Default error
   let error = {

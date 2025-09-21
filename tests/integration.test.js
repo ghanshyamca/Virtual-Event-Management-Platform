@@ -100,7 +100,7 @@ describe('Integration Tests', () => {
 
       // 5. Attendee views specific event
       const viewEventResponse = await request(app)
-        .get(`/api/events/${eventId}`)
+        .get(`/events/${eventId}`)
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(200);
 
@@ -109,7 +109,7 @@ describe('Integration Tests', () => {
 
       // 6. Attendee registers for event
       const registerEventResponse = await request(app)
-        .post(`/api/events/${eventId}/register`)
+        .post(`/events/${eventId}/register`)
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(200);
 
@@ -118,7 +118,7 @@ describe('Integration Tests', () => {
 
       // 7. Attendee views their registrations
       const myRegistrationsResponse = await request(app)
-        .get('/api/events/my/registrations')
+        .get('/events/my/registrations')
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(200);
 
@@ -127,7 +127,7 @@ describe('Integration Tests', () => {
 
       // 8. Organizer views event participants
       const participantsResponse = await request(app)
-        .get(`/api/events/${eventId}/participants`)
+        .get(`/events/${eventId}/participants`)
         .set('Authorization', `Bearer ${organizerToken}`)
         .expect(200);
 
@@ -136,7 +136,7 @@ describe('Integration Tests', () => {
 
       // 9. Organizer views their events
       const myEventsResponse = await request(app)
-        .get('/api/events/my/organized')
+        .get('/events/my/organized')
         .set('Authorization', `Bearer ${organizerToken}`)
         .expect(200);
 
@@ -151,7 +151,7 @@ describe('Integration Tests', () => {
       };
 
       const updateEventResponse = await request(app)
-        .put(`/api/events/${eventId}`)
+        .put(`/events/${eventId}`)
         .set('Authorization', `Bearer ${organizerToken}`)
         .send(updateData)
         .expect(200);
@@ -161,7 +161,7 @@ describe('Integration Tests', () => {
 
       // 11. Attendee unregisters from event
       const unregisterResponse = await request(app)
-        .delete(`/api/events/${eventId}/register`)
+        .delete(`/events/${eventId}/register`)
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(200);
 
@@ -170,7 +170,7 @@ describe('Integration Tests', () => {
 
       // 12. Verify attendee has no registrations
       const finalRegistrationsResponse = await request(app)
-        .get('/api/events/my/registrations')
+        .get('/events/my/registrations')
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(200);
 
@@ -225,6 +225,7 @@ describe('Integration Tests', () => {
         const attendeeData = {
           email: `attendee${i}@example.com`,
           password: 'Test123!@#',
+          confirmPassword: 'Test123!@#',
           firstName: `Attendee${i}`,
           lastName: 'User',
           role: 'attendee'
@@ -234,23 +235,31 @@ describe('Integration Tests', () => {
           .post('/users/register')
           .send(attendeeData);
 
-        attendees.push(response.body.data.token);
+        // Login to get token
+        const loginResponse = await request(app)
+          .post('/users/login')
+          .send({
+            email: attendeeData.email,
+            password: attendeeData.password
+          });
+
+        attendees.push(loginResponse.body.data.token);
       }
 
       // First two attendees should register successfully
       await request(app)
-        .post(`/api/events/${eventId}/register`)
+        .post(`/events/${eventId}/register`)
         .set('Authorization', `Bearer ${attendees[0]}`)
         .expect(200);
 
       await request(app)
-        .post(`/api/events/${eventId}/register`)
+        .post(`/events/${eventId}/register`)
         .set('Authorization', `Bearer ${attendees[1]}`)
         .expect(200);
 
       // Third attendee should fail due to capacity
       const failedRegistration = await request(app)
-        .post(`/api/events/${eventId}/register`)
+        .post(`/events/${eventId}/register`)
         .set('Authorization', `Bearer ${attendees[2]}`)
         .expect(409);
 
@@ -258,7 +267,7 @@ describe('Integration Tests', () => {
 
       // Verify event is at capacity
       const eventResponse = await request(app)
-        .get(`/api/events/${eventId}`)
+        .get(`/events/${eventId}`)
         .expect(200);
 
       expect(eventResponse.body.data.event.participantCount).toBe(2);
@@ -270,6 +279,7 @@ describe('Integration Tests', () => {
       const organizerData = {
         email: 'organizer@example.com',
         password: 'Test123!@#',
+        confirmPassword: 'Test123!@#',
         firstName: 'Jane',
         lastName: 'Organizer',
         role: 'organizer'
@@ -279,7 +289,15 @@ describe('Integration Tests', () => {
         .post('/users/register')
         .send(organizerData);
 
-      const organizerToken = organizerResponse.body.data.token;
+      // Login to get token
+      const organizerLoginResponse = await request(app)
+        .post('/users/login')
+        .send({
+          email: organizerData.email,
+          password: organizerData.password
+        });
+
+      const organizerToken = organizerLoginResponse.body.data.token;
 
       // Create multiple events with different categories
       const eventCategories = ['technology', 'business', 'education', 'technology', 'business'];
@@ -305,7 +323,7 @@ describe('Integration Tests', () => {
 
       // Test category filtering
       const techEventsResponse = await request(app)
-        .get('/api/events?category=technology')
+        .get('/events?category=technology')
         .expect(200);
 
       expect(techEventsResponse.body.data.events).toHaveLength(2);
@@ -315,7 +333,7 @@ describe('Integration Tests', () => {
 
       // Test pagination
       const paginatedResponse = await request(app)
-        .get('/api/events?page=1&limit=2')
+        .get('/events?page=1&limit=2')
         .expect(200);
 
       expect(paginatedResponse.body.data.events).toHaveLength(2);
@@ -325,7 +343,7 @@ describe('Integration Tests', () => {
 
       // Test second page
       const secondPageResponse = await request(app)
-        .get('/api/events?page=2&limit=2')
+        .get('/events?page=2&limit=2')
         .expect(200);
 
       expect(secondPageResponse.body.data.events).toHaveLength(2);
@@ -338,6 +356,7 @@ describe('Integration Tests', () => {
       const organizerData = {
         email: 'organizer@example.com',
         password: 'Test123!@#',
+        confirmPassword: 'Test123!@#',
         firstName: 'Jane',
         lastName: 'Organizer',
         role: 'organizer'
@@ -347,12 +366,21 @@ describe('Integration Tests', () => {
         .post('/users/register')
         .send(organizerData);
 
-      const organizerToken = organizerResponse.body.data.token;
+      // Login to get token
+      const organizerLoginResponse = await request(app)
+        .post('/users/login')
+        .send({
+          email: organizerData.email,
+          password: organizerData.password
+        });
+
+      const organizerToken = organizerLoginResponse.body.data.token;
 
       // Create attendee
       const attendeeData = {
         email: 'attendee@example.com',
         password: 'Test123!@#',
+        confirmPassword: 'Test123!@#',
         firstName: 'John',
         lastName: 'Attendee',
         role: 'attendee'
@@ -390,7 +418,7 @@ describe('Integration Tests', () => {
 
       // Attendee should not be able to access private event directly
       const privateEventResponse = await request(app)
-        .get(`/api/events/${eventId}`)
+        .get(`/events/${eventId}`)
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(403);
 
@@ -398,7 +426,7 @@ describe('Integration Tests', () => {
 
       // Organizer should be able to see their private event
       const organizerEventResponse = await request(app)
-        .get(`/api/events/${eventId}`)
+        .get(`/events/${eventId}`)
         .set('Authorization', `Bearer ${organizerToken}`)
         .expect(200);
 
@@ -407,7 +435,7 @@ describe('Integration Tests', () => {
 
       // Organizer should see private event in their organized events
       const organizedEventsResponse = await request(app)
-        .get('/api/events/my/organized')
+        .get('/events/my/organized')
         .set('Authorization', `Bearer ${organizerToken}`)
         .expect(200);
 
@@ -459,11 +487,11 @@ describe('Integration Tests', () => {
 
     it('should require authentication for protected routes', async () => {
       const protectedRoutes = [
-        { method: 'get', path: '/api/auth/profile' },
-        { method: 'put', path: '/api/auth/profile' },
-        { method: 'post', path: '/api/events' },
-        { method: 'get', path: '/api/events/my/organized' },
-        { method: 'get', path: '/api/events/my/registrations' }
+        { method: 'get', path: '/users/profile' },
+        { method: 'put', path: '/users/profile' },
+        { method: 'post', path: '/events' },
+        { method: 'get', path: '/events/my/organized' },
+        { method: 'get', path: '/events/my/registrations' }
       ];
 
       for (const route of protectedRoutes) {
@@ -479,6 +507,7 @@ describe('Integration Tests', () => {
       const attendeeData = {
         email: 'attendee@example.com',
         password: 'Test123!@#',
+        confirmPassword: 'Test123!@#',
         firstName: 'John',
         lastName: 'Attendee',
         role: 'attendee'
@@ -488,7 +517,15 @@ describe('Integration Tests', () => {
         .post('/users/register')
         .send(attendeeData);
 
-      const attendeeToken = attendeeResponse.body.data.token;
+      // Login to get token
+      const attendeeLoginResponse = await request(app)
+        .post('/users/login')
+        .send({
+          email: attendeeData.email,
+          password: attendeeData.password
+        });
+
+      const attendeeToken = attendeeLoginResponse.body.data.token;
 
       // Attendee should not be able to create events
       const eventData = {
@@ -508,7 +545,7 @@ describe('Integration Tests', () => {
 
       // Attendee should not be able to view organized events
       const organizedEventsResponse = await request(app)
-        .get('/api/events/my/organized')
+        .get('/events/my/organized')
         .set('Authorization', `Bearer ${attendeeToken}`)
         .expect(403);
 

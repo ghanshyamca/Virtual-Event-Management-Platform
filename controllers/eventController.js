@@ -187,7 +187,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
       success: true,
       message: 'Successfully registered for the event',
       data: {
-        event: event.toJSON(),
+        event: event.toJSONWithUsers(),
         registrationDate: new Date()
       }
     });
@@ -217,7 +217,7 @@ const unregisterFromEvent = asyncHandler(async (req, res) => {
       success: true,
       message: 'Successfully unregistered from the event',
       data: {
-        event: event.toJSON()
+        event: event.toJSONWithUsers()
       }
     });
   } catch (error) {
@@ -259,7 +259,7 @@ const getMyRegistrations = asyncHandler(async (req, res) => {
     success: true,
     message: 'Your registrations retrieved successfully',
     data: {
-      events: events.map(event => event.toJSON()),
+      events: events.map(event => event.toJSONWithUsers()),
       total: events.length
     }
   });

@@ -91,7 +91,9 @@ class UserStore {
           return user;
         });
         
-        console.log(`📁 Loaded ${this.users.length} users from ${this.dataFile}`);
+        if (process.env.NODE_ENV !== 'test') {
+          console.log(`📁 Loaded ${this.users.length} users from ${this.dataFile}`);
+        }
       }
     } catch (error) {
       console.error('❌ Error loading users from file:', error.message);
@@ -106,7 +108,9 @@ class UserStore {
       const usersForFile = this.users.map(user => user.toFileJSON());
       const data = JSON.stringify(usersForFile, null, 2);
       fs.writeFileSync(this.dataFile, data, 'utf8');
-      console.log(`💾 Saved ${this.users.length} users to ${this.dataFile}`);
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(`💾 Saved ${this.users.length} users to ${this.dataFile}`);
+      }
     } catch (error) {
       console.error('❌ Error saving users to file:', error.message);
     }
@@ -122,7 +126,6 @@ class UserStore {
 
     const user = new User(userData);
     await user.hashPassword();
-    console.log('user',user);
     this.users.push(user);
     this.saveToFile(); // Save to JSON file
     

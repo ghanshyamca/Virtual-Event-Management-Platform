@@ -6,7 +6,6 @@ const { JWT, MESSAGES, HTTP_STATUS } = require('../config/constants');
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  console.log("token", token);
   if (!token) {
     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
       error: MESSAGES.ERROR.ACCESS_DENIED,
@@ -17,7 +16,6 @@ const authenticateToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT.SECRET);
 
-    console.log("decoded", decoded);
     
     // Get user from store
     const user = userStore.findById(decoded.userId);

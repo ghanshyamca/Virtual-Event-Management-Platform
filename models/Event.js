@@ -103,6 +103,26 @@ class Event {
     };
   }
 
+  toJSONWithUsers() {
+    return {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      date: this.date,
+      time: this.time,
+      duration: this.duration,
+      maxParticipants: this.maxParticipants,
+      participantCount: this.getParticipantCount(),
+      availableSpots: this.getAvailableSpots(),
+      status: this.status,
+      category: this.category,
+      isPublic: this.isPublic,
+      meetingLink: this.meetingLink,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
+    };
+  }
+
   // Get event without sensitive information
   toJSON() {
     return {
@@ -164,7 +184,9 @@ class EventStore {
           return event;
         });
         
-        console.log(`📁 Loaded ${this.events.length} events from ${this.dataFile}`);
+        if (process.env.NODE_ENV !== 'test') {
+          console.log(`📁 Loaded ${this.events.length} events from ${this.dataFile}`);
+        }
       }
     } catch (error) {
       console.error('❌ Error loading events from file:', error.message);
@@ -177,7 +199,9 @@ class EventStore {
     try {
       const data = JSON.stringify(this.events, null, 2);
       fs.writeFileSync(this.dataFile, data, 'utf8');
-      console.log(`💾 Saved ${this.events.length} events to ${this.dataFile}`);
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(`💾 Saved ${this.events.length} events to ${this.dataFile}`);
+      }
     } catch (error) {
       console.error('❌ Error saving events to file:', error.message);
     }
