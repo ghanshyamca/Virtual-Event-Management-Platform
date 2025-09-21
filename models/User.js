@@ -27,10 +27,25 @@ class User {
     return await bcrypt.compare(candidatePassword, this.password);
   }
 
-  // Get user without password
+  // Get user without password (for API responses)
   toJSON() {
     const { password, ...userWithoutPassword } = this;
     return userWithoutPassword;
+  }
+
+  // Get user with password hash (for file storage)
+  toFileJSON() {
+    return {
+      id: this.id,
+      email: this.email,
+      password: this.password, // Include hashed password for file storage
+      firstName: this.firstName,
+      lastName: this.lastName,
+      role: this.role,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      isActive: this.isActive
+    };
   }
 
   // Update user information
@@ -87,8 +102,9 @@ class UserStore {
   // Save users to JSON file
   saveToFile() {
     try {
-      const data = JSON.stringify(this.users, null, 2);
-      console.log("data",data);
+      // Use toFileJSON() to include password hashes in file storage
+      const usersForFile = this.users.map(user => user.toFileJSON());
+      const data = JSON.stringify(usersForFile, null, 2);
       fs.writeFileSync(this.dataFile, data, 'utf8');
       console.log(`💾 Saved ${this.users.length} users to ${this.dataFile}`);
     } catch (error) {

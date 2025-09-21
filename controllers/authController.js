@@ -231,6 +231,9 @@ const deactivateAccount = asyncHandler(async (req, res) => {
     user.isActive = false;
     user.updatedAt = new Date();
 
+    // Save user changes to file
+    userStore.saveToFile();
+
     res.status(HTTP_STATUS.OK).json({
       success: true,
       message: 'Account deactivated successfully'
