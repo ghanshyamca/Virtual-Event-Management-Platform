@@ -35,6 +35,6 @@ router.get('/stats', getUserStats);
 router.delete('/deactivate', deactivateAccount);
 
 // Admin/Organizer routes
-router.get('/users', getAllUsers);
+router.get('/all', getAllUsers);
 
 module.exports = router;

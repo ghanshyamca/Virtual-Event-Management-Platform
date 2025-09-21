@@ -113,7 +113,7 @@ const MESSAGES = {
     USER_REGISTERED: 'User registered successfully',
     LOGIN_SUCCESSFUL: 'Login successful',
     PROFILE_UPDATED: 'Profile updated successfully',
-    LOGOUT_SUCCESSFUL: 'Logout successful. Please remove the token from client storage.',
+    LOGOUT_SUCCESSFUL: 'Logout successful',
     EVENT_CREATED: 'Event created successfully',
     EVENT_UPDATED: 'Event updated successfully',
     EVENT_DELETED: 'Event deleted successfully',
